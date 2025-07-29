@@ -1,0 +1,871 @@
+{
+  "info": {
+    "name": "Aadhaar Nullifier Authentication API",
+    "description": "Complete API collection for Aadhaar nullifier-based authentication system with location filtering, user activity levels, and social interactions",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_post_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "1. Check Nullifier Availability",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success field\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifierHash\": \"0x1234567890abcdef\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/check-nullifier",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "check-nullifier"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Register User (Karnataka)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Registration successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"JWT token received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "});",
+                  "",
+                  "pm.test(\"User data returned\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user).to.have.property('username');",
+                  "    pm.expect(jsonData.user).to.have.property('state');",
+                  "    pm.expect(jsonData.user).to.have.property('userLevel');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifierHash\": \"0x1234567890abcdef\",\n  \"username\": \"user_karnataka\",\n  \"password\": \"password123\",\n  \"walletAddress\": \"0xabcdef1234567890\",\n  \"state\": \"Karnataka\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Register User (Tamil Nadu)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifierHash\": \"0x9876543210fedcba\",\n  \"username\": \"user_tamilnadu\",\n  \"password\": \"password123\",\n  \"walletAddress\": \"0x9876543210fedcba\",\n  \"state\": \"Tamil Nadu\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"JWT token received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "});",
+                  "",
+                  "pm.test(\"Last login updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user).to.have.property('lastLogin');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user_karnataka\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📝 Post Management",
+      "item": [
+        {
+          "name": "1. Create Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Post created successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Post has required fields\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.post).to.have.property('postId');",
+                  "    pm.expect(jsonData.post).to.have.property('authorState');",
+                  "    pm.expect(jsonData.post).to.have.property('authorLevel');",
+                  "    pm.collectionVariables.set('test_post_id', jsonData.post.postId);",
+                  "});",
+                  "",
+                  "pm.test(\"Post is active by default\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.post.active).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Beautiful sunrise in Bangalore! Karnataka is amazing 🌅\",\n  \"imageUrl\": \"QmKarnatakaPost123\",\n  \"location\": \"Bangalore, Karnataka\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Multiple Posts (for Level Upgrade)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Post #{{$randomInt}} - Testing user level upgrade system\",\n  \"imageUrl\": \"QmTestPost{{$randomInt}}\",\n  \"location\": \"Bangalore, Karnataka\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Posts (Location Filtered)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Posts retrieved successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Pagination info included\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "    pm.expect(jsonData.pagination).to.have.property('currentPage');",
+                  "    pm.expect(jsonData.pagination).to.have.property('totalPages');",
+                  "});",
+                  "",
+                  "pm.test(\"Posts have author info\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.posts.length > 0) {",
+                  "        pm.expect(jsonData.posts[0]).to.have.property('authorState');",
+                  "        pm.expect(jsonData.posts[0]).to.have.property('authorLevel');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get All Posts (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get My Posts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/my-posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "my-posts"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👍 Social Interactions",
+      "item": [
+        {
+          "name": "1. Like Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Like successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Like count increased\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.post).to.have.property('likeCount');",
+                  "    pm.expect(jsonData.post.likeCount).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{test_post_id}}/like",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{test_post_id}}", "like"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Duplicate Like (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Duplicate like prevented\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('already liked');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{test_post_id}}/like",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{test_post_id}}", "like"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Dislike Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Dislike successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Dislike count increased\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.post).to.have.property('dislikeCount');",
+                  "    pm.expect(jsonData.post.dislikeCount).to.be.at.least(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Check if post deactivated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.post.dislikeCount >= 10) {",
+                  "        pm.expect(jsonData.post.active).to.be.false;",
+                  "        pm.expect(jsonData.message).to.include('deactivated');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/POST-example-id/dislike",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "POST-example-id", "dislike"]
+            },
+            "description": "Replace 'POST-example-id' with actual post ID from another user"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🧪 Testing Scenarios",
+      "item": [
+        {
+          "name": "Test: Location Filtering",
+          "item": [
+            {
+              "name": "1. Login as Karnataka User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"user_karnataka\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "2. Get Karnataka Posts Only",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{jwt_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/posts",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "posts"]
+                }
+              }
+            },
+            {
+              "name": "3. Login as Tamil Nadu User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"user_tamilnadu\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "4. Get Tamil Nadu Posts Only",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{jwt_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/posts",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "posts"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Test: User Level Progression",
+          "item": [
+            {
+              "name": "1. Create 5 Posts (New → Active)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{jwt_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"caption\": \"Post for user level upgrade test - {{$randomInt}}\",\n  \"imageUrl\": \"QmLevelTest{{$randomInt}}\",\n  \"location\": \"Test Location\",\n  \"category\": \"Test\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/posts",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "posts"]
+                },
+                "description": "Run this request 5 times to see user level upgrade from 'new' to 'active'"
+              }
+            },
+            {
+              "name": "2. Create 10 Posts (Active → Super Active)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{jwt_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"caption\": \"Post for super active upgrade - {{$randomInt}}\",\n  \"imageUrl\": \"QmSuperTest{{$randomInt}}\",\n  \"location\": \"Test Location\",\n  \"category\": \"Test\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/posts",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "posts"]
+                },
+                "description": "Run this request 10 times to see user level upgrade to 'super_active'"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Test: Post Deactivation",
+          "item": [
+            {
+              "name": "1. Create Test Post for Deactivation",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{jwt_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"caption\": \"This post will be heavily disliked for testing deactivation\",\n  \"imageUrl\": \"QmTestDeactivation\",\n  \"location\": \"Test Location\",\n  \"category\": \"Test\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/posts",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "posts"]
+                }
+              }
+            },
+            {
+              "name": "2. Dislike Post (Need 10 different users)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{jwt_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/posts/POST-ID-HERE/dislike",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "posts", "POST-ID-HERE", "dislike"]
+                },
+                "description": "Replace POST-ID-HERE with actual post ID. Need 10 different users to fully test deactivation."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📊 Admin & Analytics",
+      "item": [
+        {
+          "name": "Get All Posts (No Filter)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "all"]
+            },
+            "description": "Get all posts regardless of location (admin endpoint)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 Legacy Endpoints",
+      "item": [
+        {
+          "name": "Save User (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"0xlegacy123456\",\n  \"username\": \"legacy_user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/save-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "save-user"]
+            }
+          }
+        },
+        {
+          "name": "Get User by Wallet (Legacy)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/get-user?walletAddress=0xlegacy123456",
+              "host": ["{{base_url}}"],
+              "path": ["api", "get-user"],
+              "query": [
+                {
+                  "key": "walletAddress",
+                  "value": "0xlegacy123456"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Post (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Legacy post creation\",\n  \"hashtags\": [\"legacy\", \"test\"],\n  \"walletAddress\": \"0xlegacy123456\",\n  \"imageUrl\": \"QmLegacyPost\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/savePost",
+              "host": ["{{base_url}}"],
+              "path": ["api", "savePost"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set base URL if not already set",
+          "if (!pm.collectionVariables.get('base_url')) {",
+          "    pm.collectionVariables.set('base_url', 'http://localhost:3001');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test to check response format",
+          "pm.test('Response is JSON', function () {",
+          "    pm.response.to.be.json;",
+          "});"
+        ]
+      }
+    }
+  ]
+}

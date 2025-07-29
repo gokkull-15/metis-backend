@@ -1,0 +1,754 @@
+{
+  "info": {
+    "name": "Updated Aadhaar Nullifier Authentication API",
+    "description": "Updated API collection with nullifier numbers, auto-generated usernames, KYC hash login, and user dashboard",
+    "version": "3.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_post_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "kyc_hash",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "auto_username",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication (Updated)",
+      "item": [
+        {
+          "name": "1. Check Nullifier Availability (Number)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Nullifier is available\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifier\": \"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/check-nullifier",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "check-nullifier"]
+            },
+            "description": "Check if a 128-digit nullifier number is available for registration"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Register User (Auto Username + KYC Hash)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Registration successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Auto-generated username starts with metis\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user.username).to.match(/^metis\\d+/);",
+                  "    pm.collectionVariables.set('auto_username', jsonData.user.username);",
+                  "});",
+                  "",
+                  "pm.test(\"JWT token and KYC hash received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.expect(jsonData.user).to.have.property('kycHash');",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.collectionVariables.set('kyc_hash', jsonData.user.kycHash);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifier\": \"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789\",\n  \"kycHash\": \"0xabc123def456ghi789jkl012mno345pqr678stu901vwx234yz{{$randomInt}}\",\n  \"walletAddress\": \"0xabcdef123456789{{$randomInt}}\",\n  \"state\": \"Karnataka\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register with nullifier number, KYC hash, no password required. Username auto-generated with metis prefix."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Register User (Tamil Nadu)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifier\": \"987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321\",\n  \"kycHash\": \"0xdef456ghi789jkl012mno345pqr678stu901vwx234yz567abc{{$randomInt}}\",\n  \"walletAddress\": \"0x9876543210fedcba{{$randomInt}}\",\n  \"state\": \"Tamil Nadu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Login with KYC Hash",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"KYC login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"JWT token received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "});",
+                  "",
+                  "pm.test(\"KYC hash returned in response\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user).to.have.property('kycHash');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kycHash\": \"{{kyc_hash}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login using KYC hash instead of username/password"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Login with Username/Password (Optional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{auto_username}}\",\n  \"password\": \"optional_password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Alternative login method using auto-generated username and password (if set during registration)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 User Dashboard",
+      "item": [
+        {
+          "name": "Get User Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Dashboard data retrieved\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Dashboard has user info\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.dashboard).to.have.property('userInfo');",
+                  "    pm.expect(jsonData.dashboard.userInfo).to.have.property('username');",
+                  "    pm.expect(jsonData.dashboard.userInfo).to.have.property('kycHash');",
+                  "    pm.expect(jsonData.dashboard.userInfo).to.have.property('state');",
+                  "});",
+                  "",
+                  "pm.test(\"Dashboard has post stats\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.dashboard).to.have.property('postStats');",
+                  "    pm.expect(jsonData.dashboard.postStats).to.have.property('totalPosts');",
+                  "    pm.expect(jsonData.dashboard.postStats).to.have.property('totalLikes');",
+                  "    pm.expect(jsonData.dashboard.postStats).to.have.property('totalDislikes');",
+                  "});",
+                  "",
+                  "pm.test(\"Dashboard has posts array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.dashboard).to.have.property('posts');",
+                  "    pm.expect(jsonData.dashboard.posts).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "dashboard"]
+            },
+            "description": "Get complete user dashboard with:\n- User info (username, KYC hash, state, user level)\n- Post statistics (total posts, likes, dislikes, engagement)\n- All user posts with full details"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📝 Post Management (Updated)",
+      "item": [
+        {
+          "name": "1. Create Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Post created successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Post has auto username\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.post.authorUsername).to.match(/^metis\\d+/);",
+                  "    pm.collectionVariables.set('test_post_id', jsonData.post.postId);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Post from auto-generated user {{auto_username}} 🚀\",\n  \"imageUrl\": \"QmAutoUserPost{{$randomInt}}\",\n  \"location\": \"Bangalore, Karnataka\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get Posts (Location Filtered)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get posts filtered by user's state"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👍 Social Interactions (Updated)",
+      "item": [
+        {
+          "name": "1. Like Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{test_post_id}}/like",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{test_post_id}}", "like"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Dislike Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{test_post_id}}/dislike",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{test_post_id}}", "dislike"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🧪 Complete Workflow Test",
+      "item": [
+        {
+          "name": "Step 1: Check Nullifier",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Nullifier available\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifier\": \"999888777666555444333222111000999888777666555444333222111000999888777666555444333222111000999888777666555444333222111000999888\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/check-nullifier",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "check-nullifier"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 2: Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"User registered\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.collectionVariables.set('kyc_hash', jsonData.user.kycHash);",
+                  "    pm.collectionVariables.set('auto_username', jsonData.user.username);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nullifier\": \"999888777666555444333222111000999888777666555444333222111000999888777666555444333222111000999888777666555444333222111000999888\",\n  \"kycHash\": \"0xworkflow{{$randomInt}}test{{$randomInt}}hash\",\n  \"walletAddress\": \"0xworkflow{{$randomInt}}\",\n  \"state\": \"Karnataka\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 3: Login with KYC Hash",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login successful\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kycHash\": \"{{kyc_hash}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 4: Create Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Post created\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.collectionVariables.set('test_post_id', jsonData.post.postId);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Workflow test post from {{auto_username}}! 🧪\",\n  \"imageUrl\": \"QmWorkflowTest{{$randomInt}}\",\n  \"location\": \"Test City, Karnataka\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 5: Get Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Dashboard shows all data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.dashboard.userInfo.username).to.match(/^metis\\d+/);",
+                  "    pm.expect(jsonData.dashboard.postStats.totalPosts).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "dashboard"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 6: Like Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{test_post_id}}/like",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{test_post_id}}", "like"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 7: Final Dashboard Check",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "dashboard"]
+            },
+            "description": "Final check to see updated likes in dashboard"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set base URL if not already set",
+          "if (!pm.collectionVariables.get('base_url')) {",
+          "    pm.collectionVariables.set('base_url', 'http://localhost:3001');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test to check response format",
+          "pm.test('Response is JSON', function () {",
+          "    pm.response.to.be.json;",
+          "});"
+        ]
+      }
+    }
+  ]
+}
