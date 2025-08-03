@@ -1,3 +1,4 @@
+require('dotenv').config();
 const AuthUser = require('../models/AuthUser');
 const { generateToken } = require('../utils/jwt');
 
