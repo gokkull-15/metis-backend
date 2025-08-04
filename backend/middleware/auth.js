@@ -19,7 +19,8 @@ const authenticate = async (req, res, next) => {
     }
     
     // Verify token
-    const decoded = verifyToken(token);
+const decoded = verifyToken(token);
+console.log('Decoded token:', decoded);
     
     // Get user from database
     const user = await AuthUser.findById(decoded.userId).select('-password');
