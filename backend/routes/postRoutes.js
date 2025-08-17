@@ -9,8 +9,6 @@ const {
   getPostsByLocation,
   getMyPosts,
   getPostById,
-  likePost,
-  dislikePost,
   updatePost,
   deletePost 
 } = require('../controllers/postController');
@@ -22,10 +20,6 @@ router.get('/all', getAllPosts); // Get all posts (admin/testing)
 router.post('/', authenticate, createPost); // Create new post
 router.get('/', authenticate, getPostsByLocation); // Get posts by user's location (state)
 router.get('/my-posts', authenticate, getMyPosts); // Get user's posts
-
-// Like/Dislike functionality (protected)
-router.post('/:postId/like', authenticate, likePost); // Like a post
-router.post('/:postId/dislike', authenticate, dislikePost); // Dislike a post
 
 // Post management (protected)
 router.put('/:postId', authenticate, updatePost); // Update post
