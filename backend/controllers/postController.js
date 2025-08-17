@@ -192,79 +192,6 @@ const getPostById = async (req, res) => {
   }
 };
 
-// Update post (only by author)
-const updatePost = async (req, res) => {
-  try {
-    const { postId } = req.params;
-    const { caption, hashtags } = req.body;
-
-    const post = await Post.findOne({ postId, active: true });
-    
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-
-    // Check if user is the author
-    if (post.author?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'You can only update your own posts' 
-      });
-    }
-
-    if (caption) post.caption = caption;
-    if (hashtags) post.hashtags = hashtags;
-
-    await post.save();
-
-    res.status(200).json({ 
-      success: true, 
-      message: 'Post updated successfully',
-      post 
-    });
-  } catch (error) {
-    console.error("Error updating post:", error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-};
-
-// Delete post (only by author)
-const deletePost = async (req, res) => {
-  try {
-    const { postId } = req.params;
-
-    const post = await Post.findOne({ postId, active: true });
-    
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-
-    // Check if user is the author
-    if (post.author?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'You can only delete your own posts' 
-      });
-    }
-
-    post.active = false; // Soft delete
-    await post.save();
-
-    // Update user's post count
-    req.user.postsCount = Math.max(0, req.user.postsCount - 1);
-    req.user.updateUserLevel();
-    await req.user.save();
-
-    res.status(200).json({ 
-      success: true, 
-      message: 'Post deleted successfully' 
-    });
-  } catch (error) {
-    console.error("Error deleting post:", error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-};
-
 // Legacy create post function (for backward compatibility)
 const createPostLegacy = async (req, res) => {
   try {
@@ -327,7 +254,5 @@ module.exports = {
   getAllPosts,
   getPostsByLocation,
   getMyPosts,
-  getPostById,
-  updatePost,
-  deletePost
+  getPostById
 };
