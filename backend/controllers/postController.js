@@ -165,6 +165,158 @@ const getMyPosts = async (req, res) => {
   }
 };
 
+
+const likePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user._id;
+
+    const post = await Post.findOne({ postId, active: true });
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    // Check if user already interacted with this post
+    const existingInteraction = await PostInteraction.findOne({ userId, postId });
+    
+    if (existingInteraction) {
+      if (existingInteraction.interactionType === 'like') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'You have already liked this post' 
+        });
+      } else {
+        // User had disliked, now wants to like - update interaction
+        existingInteraction.interactionType = 'like';
+        await existingInteraction.save();
+        
+        // Update post counts
+        post.likeCount += 1;
+        post.dislikeCount -= 1;
+        post.lastInteraction = new Date();
+        await post.save();
+
+        return res.status(200).json({
+          success: true,
+          message: 'Post liked successfully (changed from dislike)',
+          post: {
+            postId: post.postId,
+            likeCount: post.likeCount,
+            dislikeCount: post.dislikeCount
+          }
+        });
+      }
+    }
+
+    // Create new like interaction
+    const newInteraction = new PostInteraction({
+      userId,
+      postId,
+      interactionType: 'like'
+    });
+    await newInteraction.save();
+
+    // Update post like count
+    post.likeCount += 1;
+    post.lastInteraction = new Date();
+    await post.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Post liked successfully',
+      post: {
+        postId: post.postId,
+        likeCount: post.likeCount,
+        dislikeCount: post.dislikeCount
+      }
+    });
+
+  } catch (error) {
+    console.error("Error liking post:", error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// Dislike a post
+const dislikePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user._id;
+
+    const post = await Post.findOne({ postId, active: true });
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    // Check if user already interacted with this post
+    const existingInteraction = await PostInteraction.findOne({ userId, postId });
+    
+    if (existingInteraction) {
+      if (existingInteraction.interactionType === 'dislike') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'You have already disliked this post' 
+        });
+      } else {
+        // User had liked, now wants to dislike - update interaction
+        existingInteraction.interactionType = 'dislike';
+        await existingInteraction.save();
+        
+        // Update post counts
+        post.dislikeCount += 1;
+        post.likeCount -= 1;
+        post.lastInteraction = new Date();
+        
+        // Check if post should be deactivated
+        post.checkAndDeactivate();
+        await post.save();
+
+        return res.status(200).json({
+          success: true,
+          message: 'Post disliked successfully (changed from like)',
+          post: {
+            postId: post.postId,
+            likeCount: post.likeCount,
+            dislikeCount: post.dislikeCount,
+            active: post.active
+          }
+        });
+      }
+    }
+
+    // Create new dislike interaction
+    const newInteraction = new PostInteraction({
+      userId,
+      postId,
+      interactionType: 'dislike'
+    });
+    await newInteraction.save();
+
+    // Update post dislike count
+    post.dislikeCount += 1;
+    post.lastInteraction = new Date();
+    
+    // Check if post should be deactivated (10+ dislikes)
+    post.checkAndDeactivate();
+    await post.save();
+
+    res.status(200).json({
+      success: true,
+      message: post.active ? 'Post disliked successfully' : 'Post disliked and deactivated due to excessive dislikes',
+      post: {
+        postId: post.postId,
+        likeCount: post.likeCount,
+        dislikeCount: post.dislikeCount,
+        active: post.active
+      }
+    });
+
+  } catch (error) {
+    console.error("Error disliking post:", error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 // Get a specific post by ID
 const getPostById = async (req, res) => {
   try {
@@ -254,5 +406,7 @@ module.exports = {
   getAllPosts,
   getPostsByLocation,
   getMyPosts,
+  likePost,
+  dislikePost,
   getPostById
 };
